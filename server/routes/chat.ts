@@ -47,7 +47,7 @@ export const handleChat: RequestHandler = async (req, res) => {
     if (["headache", "fever", "exercise", "diet"].some(word => message.toLowerCase().includes(word))) {
       aiResponse = await getChatResponse(message, conversationHistory);
     } else {
-      aiResponse = await answerQuestion(message, 5, 0.68);
+      aiResponse = await answerQuestion(message, conversationHistory, 5, 0.68);
     }
 
     const response: ChatResponse = {
@@ -85,8 +85,12 @@ export const handleChatStatus: RequestHandler = (req, res) => {
 };
 
 
-export async function answerQuestion(question: string, topK = 5, match_threshold = 0.68) {
+export async function answerQuestion(question: string, conversationHistory: ChatMessage[], topK = 5, match_threshold = 0.68) {
   // create embedding for question
+
+  //ambil 2 history terakhir gabungkan dengan question
+  const history = conversationHistory.slice(-2).map((m) => m.content).join(".\n");
+  question = history + "\n" + question;
   const qEmbArr = await createEmbeddings([question]);
   const qEmb = qEmbArr[0];
 
