@@ -8,6 +8,8 @@ import { Send, Bot, User, Heart, Menu, LogOut, Settings, Sparkles } from "lucide
 import { useAuth } from "@/contexts/AuthContext";
 import { aiService } from "@/lib/ai-service";
 import { findHealthImage } from "@/lib/image-service";
+import { UserSettings } from "@/components/UserSettings"; 
+import { LogoutConfirmation } from "@/components/LogoutConfirmation";
 
 interface Message {
   id: string;
@@ -30,6 +32,8 @@ export default function Chatbot() {
     aiAvailable: false,
     provider: 'checking'
   });
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -50,12 +54,12 @@ export default function Chatbot() {
       // Add welcome message after AI status is checked
       const welcomeMessage: Message = {
         id: 'welcome',
-        text: `Hello${user ? ` ${user.fullName}` : ''}! I'm your AI-powered health assistant${status.aiAvailable ? ' powered by OpenAI' : ''}. I can provide information about symptoms, medications, healthy lifestyle tips, and more. I can also show you helpful images and visual guides! 📸`,
+        text: `Hello${user ? ` ${user.fullName}` : ''}! I'm your AI-powered health assistant from Nephocare+${status.aiAvailable ? ' powered by OpenAI' : ''}. I can provide information about symptoms, medications, healthy lifestyle tips, and more. I can also show you helpful images and visual guides! 📸`,
         sender: 'bot',
         timestamp: new Date(),
         image: {
           url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center',
-          alt: 'Friendly healthcare assistant',
+          alt: 'Friendly Nephocare assistant',
           caption: 'I can provide personalized health guidance and tips!'
         }
       };
@@ -153,9 +157,9 @@ export default function Chatbot() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                HealthCare+ Assistant
+                Nephocare+ Assistant
                 {aiStatus.aiAvailable && (
-                  <Sparkles className="w-4 h-4 text-blue-600" title="AI Powered" />
+                  <Sparkles className="w-4 h-4 text-blue-600" />
                 )}
               </h1>
               <p className="text-sm text-gray-600">
@@ -167,10 +171,20 @@ export default function Chatbot() {
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600 mr-2">Welcome, {user?.fullName || 'User'}</span>
-            <Button variant="ghost" size="sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSettings(true)}
+              title="Account Settings"
+            >
               <Settings className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowLogoutConfirm(true)}
+              title="Logout"
+            >
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
@@ -256,7 +270,7 @@ export default function Chatbot() {
                           <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
                         <span className="text-xs text-gray-500 animate-pulse">
-                          Preparing response with images...
+                          answering your question...
                         </span>
                       </div>
                     </div>
@@ -307,6 +321,19 @@ export default function Chatbot() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Settings Dialog */}
+      <UserSettings
+        open={showSettings}
+        onOpenChange={setShowSettings}
+      />
+
+      {/* Logout Confirmation Dialog */}
+      <LogoutConfirmation
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }
