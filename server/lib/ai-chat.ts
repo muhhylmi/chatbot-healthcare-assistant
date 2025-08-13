@@ -44,10 +44,10 @@ export interface AIResponse {
 }
 
 export async function getChatResponse(
-  userMessage: string, 
+  userMessage: string,
   conversationHistory: ChatMessage[] = []
 ): Promise<AIResponse> {
-  
+
   if (!openai || !isOpenAIConfigured) {
     // Fallback to static responses if OpenAI is not configured
     return getFallbackResponse(userMessage);
@@ -71,11 +71,11 @@ export async function getChatResponse(
     });
 
     const aiMessage = completion.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate a response. Please try again.';
-    
+
     // Extract image suggestion if present
     const imageMatch = aiMessage.match(/\[IMAGE_SUGGESTION:\s*([^\]]+)\]/);
     const imageSearchTerm = imageMatch ? imageMatch[1].trim() : undefined;
-    
+
     // Remove image suggestion from the message
     const cleanMessage = aiMessage.replace(/\[IMAGE_SUGGESTION:[^\]]+\]/g, '').trim();
 
@@ -86,7 +86,7 @@ export async function getChatResponse(
 
   } catch (error: any) {
     console.error('OpenAI API error:', error);
-    
+
     // Return fallback response on error
     return {
       message: 'I apologize, but I\'m experiencing technical difficulties. Please try again in a moment.',
@@ -98,7 +98,7 @@ export async function getChatResponse(
 // Fallback responses when OpenAI is not available
 function getFallbackResponse(userInput: string): AIResponse {
   const input = userInput.toLowerCase();
-  
+
   const responses: { [key: string]: { message: string; imageSearchTerm?: string } } = {
     'headache': {
       message: 'Headaches can have various causes including stress, dehydration, lack of sleep, or tension. For mild headaches, try resting in a quiet, dark room, applying a cool compress to your forehead, staying hydrated, and practicing relaxation techniques. If headaches are severe, frequent, or accompanied by other concerning symptoms, please consult with a qualified healthcare professional for personalized medical advice.',
