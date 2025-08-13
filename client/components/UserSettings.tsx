@@ -13,7 +13,7 @@ interface UserSettingsProps {
 }
 
 export function UserSettings({ open, onOpenChange }: UserSettingsProps) {
-  const { user } = useAuth();
+  const { user, updateProfile, updatePassword } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
@@ -33,16 +33,22 @@ export function UserSettings({ open, onOpenChange }: UserSettingsProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call (you can implement actual API call here)
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been updated successfully.",
-      });
-      
-      onOpenChange(false);
+      const result = await updateProfile(profileForm.fullName, profileForm.email);
+
+      if (result.success) {
+        toast({
+          title: "Profile Updated",
+          description: "Your profile information has been updated successfully.",
+        });
+        onOpenChange(false);
+      } else {
+        toast({
+          title: "Update Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Update Failed",
@@ -77,22 +83,29 @@ export function UserSettings({ open, onOpenChange }: UserSettingsProps) {
 
     setIsLoading(true);
 
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Password Changed",
-        description: "Your password has been changed successfully.",
-      });
-      
-      setPasswordForm({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      
-      onOpenChange(false);
+      const result = await updatePassword(passwordForm.currentPassword, passwordForm.newPassword);
+
+      if (result.success) {
+        toast({
+          title: "Password Changed",
+          description: "Your password has been changed successfully.",
+        });
+
+        setPasswordForm({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+
+        onOpenChange(false);
+      } else {
+        toast({
+          title: "Password Change Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Password Change Failed",

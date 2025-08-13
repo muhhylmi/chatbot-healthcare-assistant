@@ -49,7 +49,7 @@ export default function Index() {
       if (result.success) {
         toast({
           title: "Login successful!",
-          description: "Welcome back to HealthCare+",
+          description: "Welcome back to Nephocare+",
         });
         navigate('/chatbot');
       } else {
@@ -91,7 +91,7 @@ export default function Index() {
       if (result.success) {
         toast({
           title: "Account created!",
-          description: "Welcome to HealthCare+",
+          description: "Welcome to Nephocare+",
         });
         navigate('/chatbot');
       } else {
@@ -119,7 +119,7 @@ export default function Index() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
             <Heart className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">HealthCare+</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Nephocare+</h1>
           <p className="text-gray-600">Your health, our priority</p>
         </div>
 
@@ -301,7 +301,7 @@ export default function Index() {
         </Card>
 
         <div className="mt-8">
-          <div className="text-center text-sm text-gray-600 mb-4">Why choose HealthCare+?</div>
+          <div className="text-center text-sm text-gray-600 mb-4">Why choose Nephocare+?</div>
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="flex flex-col items-center space-y-1">
               <Shield className="w-6 h-6 text-blue-600" />

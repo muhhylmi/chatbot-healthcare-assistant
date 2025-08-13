@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, Bot, User, Heart, Menu, LogOut, Settings, Sparkles } from "lucide-react";
+import { Send, Bot, User, Heart, Menu, LogOut, Settings, Sparkles, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { aiService } from "@/lib/ai-service";
 import { findHealthImage } from "@/lib/image-service";
-import { UserSettings } from "@/components/UserSettings"; 
+import { UserSettings } from "@/components/UserSettings";
 import { LogoutConfirmation } from "@/components/LogoutConfirmation";
+import { FormattedText } from "@/components/FormattedText";
 
 interface Message {
   id: string;
@@ -34,6 +35,13 @@ export default function Chatbot() {
   });
   const [showSettings, setShowSettings] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  // Save messages to history whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      aiService.saveMessageHistory(messages);
+    }
+  }, [messages]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -51,20 +59,33 @@ export default function Chatbot() {
       const status = await aiService.getStatus();
       setAiStatus(status);
 
-      // Add welcome message after AI status is checked
-      const welcomeMessage: Message = {
-        id: 'welcome',
-        text: `Hello${user ? ` ${user.fullName}` : ''}! I'm your AI-powered health assistant from Nephocare+${status.aiAvailable ? ' powered by OpenAI' : ''}. I can provide information about symptoms, medications, healthy lifestyle tips, and more. I can also show you helpful images and visual guides! 📸`,
-        sender: 'bot',
-        timestamp: new Date(),
-        image: {
-          url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center',
-          alt: 'Friendly Nephocare assistant',
-          caption: 'I can provide personalized health guidance and tips!'
-        }
-      };
+      // Load chat history first
+      const savedHistory = aiService.loadMessageHistory();
 
-      setMessages([welcomeMessage]);
+      if (savedHistory.length > 0) {
+        // Convert timestamps back to Date objects
+        const restoredMessages = savedHistory.map(msg => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        setMessages(restoredMessages);
+      } else {
+        // Add welcome message if no history
+        const welcomeMessage: Message = {
+          id: 'welcome',
+          text: `Hello${user ? ` ${user.fullName}` : ''}! I'm your AI-powered health assistant from Nephocare+${status.aiAvailable ? ' powered by OpenAI' : ''}. I can provide information about symptoms, medications, healthy lifestyle tips, and more. I can also show you helpful images and visual guides! 📸`,
+          sender: 'bot',
+          timestamp: new Date(),
+          image: {
+            url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center',
+            alt: 'Friendly Nephocare assistant',
+            caption: 'I can provide personalized health guidance and tips!'
+          }
+        };
+
+        setMessages([welcomeMessage]);
+        aiService.saveMessageHistory([welcomeMessage]);
+      }
     };
 
     if (user) {
@@ -79,6 +100,26 @@ export default function Chatbot() {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleClearHistory = () => {
+    aiService.clearMessageHistory();
+    aiService.clearHistory();
+
+    // Add fresh welcome message
+    const welcomeMessage: Message = {
+      id: 'welcome-' + Date.now(),
+      text: `Hello${user ? ` ${user.fullName}` : ''}! I'm your AI-powered health assistant from Nephocare+${aiStatus.aiAvailable ? ' powered by OpenAI' : ''}. I can provide information about symptoms, medications, healthy lifestyle tips, and more. I can also show you helpful images and visual guides! 📸`,
+      sender: 'bot',
+      timestamp: new Date(),
+      image: {
+        url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=300&fit=crop&crop=center',
+        alt: 'Friendly Nephocare assistant',
+        caption: 'I can provide personalized health guidance and tips!'
+      }
+    };
+
+    setMessages([welcomeMessage]);
   };
 
   useEffect(() => {
@@ -159,7 +200,7 @@ export default function Chatbot() {
               <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                 Nephocare+ Assistant
                 {aiStatus.aiAvailable && (
-                  <Sparkles className="w-4 h-4 text-blue-600" />
+                  <Sparkles className="w-4 h-4 text-blue-600"  />
                 )}
               </h1>
               <p className="text-sm text-gray-600">
@@ -171,6 +212,14 @@ export default function Chatbot() {
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-600 mr-2">Welcome, {user?.fullName || 'User'}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearHistory}
+              title="Clear Chat History"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -215,7 +264,10 @@ export default function Chatbot() {
                           : 'bg-gray-100 text-gray-900'
                       }`}
                     >
-                      <p className="text-sm break-words mb-2">{message.text}</p>
+                      <FormattedText
+                        text={message.text}
+                        className="text-sm break-words mb-2"
+                      />
 
                       {/* Display image if present */}
                       {message.image && (
@@ -270,7 +322,7 @@ export default function Chatbot() {
                           <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
                         <span className="text-xs text-gray-500 animate-pulse">
-                          answering your question...
+                          Answering your question...
                         </span>
                       </div>
                     </div>

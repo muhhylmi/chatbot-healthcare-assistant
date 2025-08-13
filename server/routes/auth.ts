@@ -4,7 +4,7 @@ import { supabase, DatabaseUser, isSupabaseAvailable } from "../lib/supabase";
 import { createHash, randomBytes } from 'crypto';
 
 // Fallback in-memory storage when Supabase is not configured
-const fallbackUsers: Array<User & { password: string; salt: string }> = [];
+export const fallbackUsers: Array<User & { password: string; salt: string }> = [];
 
 // Password hashing using crypto
 const hashPassword = (password: string, salt?: string): { hash: string; salt: string } => {
@@ -117,7 +117,7 @@ export const handleSignup: RequestHandler = async (req, res) => {
     } else {
       // Fallback in-memory storage
       console.log('Using fallback in-memory storage for user registration');
-      
+
       // Check if user already exists
       const existingUser = fallbackUsers.find(user => user.email === email);
       if (existingUser) {
@@ -227,7 +227,7 @@ export const handleLogin: RequestHandler = async (req, res) => {
     } else {
       // Fallback in-memory storage
       console.log('Using fallback in-memory storage for user login');
-      
+
       // Find user
       const user = fallbackUsers.find(u => u.email === email);
       if (!user) {
@@ -276,7 +276,7 @@ export const handleLogin: RequestHandler = async (req, res) => {
 export const handleGetProfile: RequestHandler = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       const response: AuthResponse = {
         success: false,
@@ -286,10 +286,10 @@ export const handleGetProfile: RequestHandler = async (req, res) => {
     }
 
     const token = authHeader.substring(7);
-    
+
     try {
       const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-      
+
       // Check token expiration
       if (decoded.exp && decoded.exp < Date.now()) {
         const response: AuthResponse = {
@@ -307,7 +307,7 @@ export const handleGetProfile: RequestHandler = async (req, res) => {
           .select('id, full_name, email, created_at')
           .eq('id', decoded.userId)
           .single();
-        
+
         if (findError || !user) {
           const response: AuthResponse = {
             success: false,
@@ -330,7 +330,7 @@ export const handleGetProfile: RequestHandler = async (req, res) => {
       } else {
         // Fallback in-memory storage
         const user = fallbackUsers.find(u => u.id === decoded.userId);
-        
+
         if (!user) {
           const response: AuthResponse = {
             success: false,

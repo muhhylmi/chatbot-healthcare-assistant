@@ -4,6 +4,7 @@ import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { handleLogin, handleSignup, handleGetProfile } from "./routes/auth";
 import { handleChat, handleChatStatus } from "./routes/chat";
+import { handleUpdatePassword, handleUpdateProfile } from "./routes/user";
 
 export function createServer() {
   const app = express();
@@ -21,10 +22,15 @@ export function createServer() {
 
   app.get("/api/demo", handleDemo);
 
+
   // Authentication routes
   app.post("/api/auth/login", handleLogin);
   app.post("/api/auth/signup", handleSignup);
   app.get("/api/auth/profile", handleGetProfile);
+
+  // User routes
+  app.put("/api/user/profile", handleUpdateProfile);
+  app.put("/api/user/password", handleUpdatePassword);
 
   // Chat routes
   app.post("/api/chat", handleChat);

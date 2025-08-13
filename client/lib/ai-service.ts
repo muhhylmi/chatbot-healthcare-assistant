@@ -2,6 +2,7 @@ import { ChatRequest, ChatResponse, ChatMessage } from "@shared/api";
 
 class AIService {
   private conversationHistory: ChatMessage[] = [];
+  private messageHistory: any[] = [];
 
   async sendMessage(message: string): Promise<ChatResponse> {
     try {
@@ -66,6 +67,34 @@ class AIService {
 
   getHistory(): ChatMessage[] {
     return [...this.conversationHistory];
+  }
+
+  // Message history for UI persistence
+  saveMessageHistory(messages: any[]): void {
+    this.messageHistory = messages;
+    localStorage.setItem('nephocare_chat_history', JSON.stringify(messages));
+  }
+
+  loadMessageHistory(): any[] {
+    try {
+      const saved = localStorage.getItem('nephocare_chat_history');
+      if (saved) {
+        this.messageHistory = JSON.parse(saved);
+        return this.messageHistory;
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+    return [];
+  }
+
+  getMessageHistory(): any[] {
+    return [...this.messageHistory];
+  }
+
+  clearMessageHistory(): void {
+    this.messageHistory = [];
+    localStorage.removeItem('nephocare_chat_history');
   }
 }
 

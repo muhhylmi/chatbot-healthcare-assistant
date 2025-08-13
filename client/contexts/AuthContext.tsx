@@ -14,6 +14,8 @@ interface AuthContextType {
   signup: (fullName: string, email: string, password: string) => Promise<AuthResponse>;
   logout: () => void;
   loading: boolean;
+  updateProfile: (fullName: string, email: string) => Promise<AuthResponse>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<AuthResponse>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -182,12 +184,107 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem("auth_token");
   };
 
+  const updateProfile = async (fullName: string, email: string): Promise<AuthResponse> => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        return {
+          success: false,
+          message: "No authentication token found"
+        };
+      }
+
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ fullName, email }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Failed to update profile";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // Use default message
+        }
+        return {
+          success: false,
+          message: errorMessage,
+        };
+      }
+
+      const data: AuthResponse = await response.json();
+
+      if (data.success && data.user) {
+        setUser(data.user);
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Update profile error:", error);
+      return {
+        success: false,
+        message: "Network error. Please try again.",
+      };
+    }
+  };
+
+  const updatePassword = async (currentPassword: string, newPassword: string): Promise<AuthResponse> => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        return {
+          success: false,
+          message: "No authentication token found"
+        };
+      }
+
+      const response = await fetch("/api/user/password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Failed to update password";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // Use default message
+        }
+        return {
+          success: false,
+          message: errorMessage,
+        };
+      }
+
+      const data: AuthResponse = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Update password error:", error);
+      return {
+        success: false,
+        message: "Network error. Please try again.",
+      };
+    }
+  };
+
   const value = {
     user,
     login,
     signup,
     logout,
     loading,
+    updateProfile,
+    updatePassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
